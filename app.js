@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require('lodash');
 const mongoose = require('mongoose');
-
+// Load the AWS SDK
 var AWS = require('aws-sdk'),
     region = "us-east-1",
     secretName = "blogdbpass",
@@ -13,10 +13,12 @@ var AWS = require('aws-sdk'),
     decodedBinarySecret;
 
 // Create a Secrets Manager client
+var cred = '';
 var client = new AWS.SecretsManager({
     region: region
 });
-var cred = '';
+var mongoendpoint = '';
+
 
 client.getSecretValue({SecretId: secretName}, function(err, data) {
     if (err) {
@@ -53,14 +55,15 @@ client.getSecretValue({SecretId: secretName}, function(err, data) {
     }
 
     // Your code goes here.
+
     cred = JSON.parse(secret);
+    console.log(cred.username);
+    mongoendpoint = 'mongodb://kaizad:' + cred.password +'@blogdb.cluster-csqkl7yoxcrg.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false';
+    mongoose.connect(mongoendpoint, {useNewUrlParser: true, useUnifiedTopology: true });
 });
 
-const mongoendpoint = 'mongodb://kaizad:' + cred.password +'@blogdb.cluster-csqkl7yoxcrg.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false';
 
 
-
-mongoose.connect(mongoendpoint, {useNewUrlParser: true});
 
 const blogPostSchema = {title: String, content: String, link: String};
 
