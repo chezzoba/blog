@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require('lodash');
 const mongoose = require('mongoose');
+const fs = require('fs');
+
 // Load the AWS SDK
 var AWS = require('aws-sdk'),
     region = "us-east-1",
@@ -59,7 +61,13 @@ client.getSecretValue({SecretId: secretName}, function(err, data) {
     cred = JSON.parse(secret);
     console.log(cred.username);
     mongoendpoint = 'mongodb://kaizad:' + cred.password +'@blogdb.cluster-csqkl7yoxcrg.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false';
-    mongoose.connect(mongoendpoint, {useNewUrlParser: true, useUnifiedTopology: true });
+    mongoose.connect(mongoendpoint, {
+    useNewUrlParser: true,
+    ssl: true,
+    sslValidate: false,
+    sslCA: fs.readFileSync('rds-combined-ca-bundle.pem')})
+.then(() => console.log('Connection to DB successful'))
+.catch((err) => console.error(err,'Error'));
 });
 
 
